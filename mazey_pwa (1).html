@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Ask Mazey" />
+  <meta name="theme-color" content="#2d6a4f" />
+  <title>Ask Mazey | Maze Products</title>
+
+  <!-- PWA manifest inline as blob -->
+  <script>
+    const manifest = {
+      name: "Ask Mazey", short_name: "Mazey",
+      description: "24/7 Live Compost & Gardening Support from Maze Products",
+      start_url: "/", display: "standalone",
+      background_color: "#2d6a4f", theme_color: "#2d6a4f",
+      orientation: "portrait",
+      icons: [
+        { src: "https://mazeproducts.com.au/cdn/shop/files/mazey-worm.png", sizes: "192x192", type: "image/png" },
+        { src: "https://mazeproducts.com.au/cdn/shop/files/mazey-worm.png", sizes: "512x512", type: "image/png" }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+    const link = document.createElement('link');
+    link.rel = 'manifest'; link.href = URL.createObjectURL(blob);
+    document.head.appendChild(link);
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-dark:  #2d6a4f;
+      --green-mid:   #40916c;
+      --green-light: #52b788;
+      --green-pale:  #f0fdf4;
+      --green-bg:    #f8f9fa;
+      --safe-top:    env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html, body {
+      height: 100%; width: 100%;
+      overflow: hidden;
+      background: var(--green-dark);
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    /* ── App shell ── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh; /* dynamic viewport height — handles mobile browser chrome */
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      position: relative;
+    }
+
+    /* ── Header ── */
+    #mz-header {
+      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 60%, var(--green-light) 100%);
+      padding: calc(var(--safe-top) + 14px) 16px 14px;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    #mz-header::after {
+      content: '';
+      position: absolute; top: -30px; right: -30px;
+      width: 100px; height: 100px; border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+    }
+    .mz-header-inner { display: flex; align-items: center; gap: 12px; position: relative; }
+    .mz-ava-wrap {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #fff; overflow: hidden; flex-shrink: 0;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mz-ava-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .mz-ava-fallback { font-size: 28px; line-height: 1; }
+    .mz-header-text { flex: 1; }
+    .mz-name { color: #fff; font-weight: 800; font-size: 18px; letter-spacing: 0.2px; }
+    .mz-subtitle { color: #b7e4c7; font-size: 11px; font-weight: 600; margin-top: 2px; letter-spacing: 0.3px; }
+    .mz-status { display: flex; align-items: center; gap: 5px; margin-top: 4px; }
+    .mz-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #74c69d;
+      box-shadow: 0 0 0 2px rgba(116,198,157,0.3);
+    }
+    .mz-status-txt { color: #d8f3dc; font-size: 11px; }
+
+    /* ── Messages ── */
+    #mz-messages {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px 12px 8px;
+      background: var(--green-bg);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .mz-row-bot  { display: flex; gap: 8px; align-items: flex-end; }
+    .mz-row-user { display: flex; gap: 8px; align-items: flex-end; flex-direction: row-reverse; }
+
+    .mz-mini-ava {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #fff; overflow: hidden; flex-shrink: 0;
+      border: 1.5px solid #d8f3dc;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .mz-mini-ava img { width: 100%; height: 100%; object-fit: cover; }
+    .mz-mini-ava-user { background: var(--green-dark); border-color: var(--green-dark); font-size: 13px; }
+
+    .mz-bubble {
+      max-width: 78%;
+      padding: 10px 14px;
+      font-size: 13px;
+      line-height: 1.65;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .mz-bubble p  { margin: 0; font-size: 13px; font-family: inherit; }
+    .mz-bubble li { font-size: 13px; font-family: inherit; margin-bottom: 3px; }
+    .mz-bubble a  { color: var(--green-dark); font-weight: 600; text-decoration: underline; }
+    .mz-bubble strong { font-weight: 700; }
+
+    .mz-bubble-bot {
+      background: #fff;
+      color: #1a1a1a;
+      border-radius: 4px 18px 18px 18px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    }
+    .mz-bubble-user {
+      background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+      color: #fff;
+      border-radius: 18px 4px 18px 18px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+    }
+
+    /* Typing indicator */
+    .mz-typing {
+      display: flex; gap: 5px; align-items: center;
+      padding: 12px 16px;
+    }
+    .mz-typing span {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green-light); display: inline-block;
+    }
+
+    /* ── Handoff card ── */
+    .mz-handoff {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border: 1px solid #86efac;
+      border-radius: 14px;
+      padding: 14px;
+      margin: 0 2px;
+    }
+    .mz-handoff-title { color: #15803d; font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+    .mz-handoff-sub { color: #4b5563; font-size: 12px; line-height: 1.5; margin-bottom: 12px; }
+    .mz-handoff input {
+      width: 100%; padding: 9px 12px; border-radius: 8px;
+      border: 1.5px solid #86efac; margin-bottom: 8px;
+      font-size: 13px; outline: none; background: #fff;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .mz-handoff input:focus { border-color: var(--green-mid); }
+    .mz-btn-row { display: flex; gap: 8px; }
+    .mz-btn-green {
+      flex: 1; background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+      color: #fff; border: none; border-radius: 10px;
+      padding: 10px; font-size: 13px; font-weight: 700;
+      cursor: pointer; font-family: 'Montserrat', sans-serif;
+      box-shadow: 0 2px 8px rgba(45,106,79,0.3);
+    }
+    .mz-btn-grey {
+      background: #e5e7eb; color: #374151; border: none;
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 13px; cursor: pointer; font-family: 'Montserrat', sans-serif;
+    }
+
+    /* ── Quick replies ── */
+    #mz-quick {
+      padding: 8px 12px;
+      background: var(--green-bg);
+      display: flex; flex-wrap: wrap; gap: 7px;
+      border-top: 1px solid #eee;
+      flex-shrink: 0;
+    }
+    .mz-qbtn {
+      background: #fff;
+      border: 1.5px solid var(--green-light);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px; font-weight: 600;
+      color: var(--green-dark);
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      transition: background 0.15s;
+    }
+    .mz-qbtn:active { background: #f0fdf4; }
+
+    /* ── Input bar ── */
+    #mz-inputbar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px calc(var(--safe-bottom) + 10px);
+      background: #fff;
+      border-top: 1px solid #f0f0f0;
+      flex-shrink: 0;
+    }
+    #mz-input {
+      flex: 1;
+      padding: 11px 16px;
+      border-radius: 26px;
+      border: 1.5px solid #d1fae5;
+      font-size: 14px;
+      font-family: 'Montserrat', sans-serif;
+      outline: none;
+      background: #f8fffe;
+      color: #1a1a1a;
+      transition: border-color 0.2s;
+    }
+    #mz-input:focus { border-color: var(--green-light); }
+    #mz-send {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--green-dark), var(--green-light));
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 3px 10px rgba(45,106,79,0.4);
+      transition: transform 0.15s;
+    }
+    #mz-send:active { transform: scale(0.93); }
+    #mz-send:disabled { background: #d1d5db; box-shadow: none; cursor: default; }
+
+    /* ── Footer ── */
+    #mz-foot {
+      background: #fff;
+      text-align: center;
+      padding: 4px 0 6px;
+      font-size: 10px;
+      color: #9ca3af;
+      font-family: 'Montserrat', sans-serif;
+      flex-shrink: 0;
+    }
+    #mz-foot a { color: var(--green-light); text-decoration: none; font-weight: 600; }
+
+    @keyframes mzBounce {
+      0%,60%,100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <div id="mz-header">
+    <div class="mz-header-inner">
+      <div class="mz-ava-wrap" id="mz-header-ava">
+        <img
+          src="https://mazeproducts.com.au/cdn/shop/files/mazey-worm.png"
+          alt="Mazey"
+          onerror="this.style.display='none'; document.getElementById('mz-ava-fb').style.display='block'"
+        />
+        <span class="mz-ava-fallback" id="mz-ava-fb" style="display:none">🪱</span>
+      </div>
+      <div class="mz-header-text">
+        <div class="mz-name">Ask Mazey</div>
+        <div class="mz-subtitle">24/7 Live Compost &amp; Gardening Support</div>
+        <div class="mz-status">
+          <span class="mz-dot"></span>
+          <span class="mz-status-txt">Online · Replies instantly</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mz-messages"></div>
+
+  <div id="mz-quick">
+    <button class="mz-qbtn" onclick="send('Which composter suits me?')">Which composter suits me?</button>
+    <button class="mz-qbtn" onclick="send('How do I start composting?')">How do I start composting?</button>
+    <button class="mz-qbtn" onclick="send('What products do you sell?')">What products do you sell?</button>
+    <button class="mz-qbtn" onclick="send('Help with my order')">Help with my order</button>
+  </div>
+
+  <div id="mz-inputbar">
+    <input id="mz-input" placeholder="Ask Mazey anything…" onkeydown="if(event.key==='Enter')send()" />
+    <button id="mz-send" onclick="send()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="mz-foot">
+    🌱 <a href="https://mazeproducts.com.au" target="_blank">mazeproducts.com.au</a> · Powered by AI
+  </div>
+
+</div>
+
+<script>
+const PROXY = '';
+const WORM    = 'https://mazeproducts.com.au/cdn/shop/files/mazey-worm.png';
+const SYSTEM  = `You are Mazey, a friendly customer support specialist for Maze Products Australia (mazeproducts.com.au) — Australia's leading composting and gardening store.
+
+Your role:
+- Recommend ONLY products from mazeproducts.com.au (composters, worm farms, garden beds, accessories)
+- Give composting and gardening advice tailored to Australian conditions
+- Troubleshoot composting and worm farm problems
+- Help with product setup, usage and maintenance
+- For order/shipping queries offer to connect to a human
+
+Rules:
+- NEVER suggest competitor products or other brands
+- Always use web search to get accurate current product names, prices and links from mazeproducts.com.au
+- Always include a direct link to mazeproducts.com.au when recommending a product
+- Warm, fun, Australian tone — light worm/composting puns welcome
+- Concise replies, bullet points for lists
+- End each reply with a follow-up question or offer to connect to a human`;
+
+let msgs = [];
+let busy = false;
+let msgId = 0;
+let step = 'none'; // none | prompt | form | done
+
+const $ = id => document.getElementById(id);
+
+function wormImg(size) {
+  return `<img src="${WORM}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:50%" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🪱',style:'font-size:${Math.round(size*0.6)}px'}))" />`;
+}
+
+function fmt(text) {
+  return text.split('\n').map(line => {
+    line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    line = line.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+      '<a href="$2" target="_blank">$1</a>');
+    if (line.startsWith('- ')) return `<li style="margin-left:16px;list-style:disc;margin-bottom:3px">${line.slice(2)}</li>`;
+    if (!line.trim()) return '<div style="height:4px"></div>';
+    return `<p>${line}</p>`;
+  }).join('');
+}
+
+function scrollToBot() {
+  const el = $('mz-messages');
+  if (!el) return;
+  const rows = el.querySelectorAll('.mz-row-bot');
+  if (!rows.length) return;
+  const last = rows[rows.length - 1];
+  el.scrollTop += last.getBoundingClientRect().top - el.getBoundingClientRect().top - 10;
+}
+
+function render() {
+  const el = $('mz-messages');
+  if (!el) return;
+
+  let h = msgs.map(m => `
+    <div class="${m.role==='user'?'mz-row-user':'mz-row-bot'}">
+      <div class="mz-mini-ava ${m.role==='user'?'mz-mini-ava-user':''}">
+        ${m.role==='user' ? '👤' : wormImg(26)}
+      </div>
+      <div class="mz-bubble ${m.role==='user'?'mz-bubble-user':'mz-bubble-bot'}">${fmt(m.content)}</div>
+    </div>`).join('');
+
+  if (busy) h += `
+    <div class="mz-row-bot">
+      <div class="mz-mini-ava">${wormImg(26)}</div>
+      <div class="mz-bubble mz-bubble-bot mz-typing">
+        ${[0,1,2].map(i=>`<span style="animation:mzBounce 1.2s infinite ${i*0.2}s"></span>`).join('')}
+      </div>
+    </div>`;
+
+  if (step === 'prompt') h += `
+    <div class="mz-handoff">
+      <div class="mz-handoff-title">💬 Want to chat with a real person?</div>
+      <div class="mz-handoff-sub">Our team can help with anything I can't handle!</div>
+      <button class="mz-btn-green" onclick="startForm()">Connect me with a human →</button>
+    </div>`;
+
+  if (step === 'form') h += `
+    <div class="mz-handoff">
+      <div class="mz-handoff-title">🙋 Let's get you connected!</div>
+      <input id="mz-hname" placeholder="Your name" style="margin-top:8px" />
+      <input id="mz-hemail" placeholder="Your email address" />
+      <div class="mz-btn-row">
+        <button class="mz-btn-green" onclick="submitForm()">Connect me →</button>
+        <button class="mz-btn-grey" onclick="cancelForm()">Cancel</button>
+      </div>
+    </div>`;
+
+  el.innerHTML = h;
+  $('mz-quick').style.display = msgs.length > 0 ? 'none' : 'flex';
+}
+
+async function send(text) {
+  const inp = $('mz-input');
+  const t = text || inp.value.trim();
+  if (!t || busy) return;
+  inp.value = '';
+  step = 'none';
+  msgs.push({ role:'user', content:t, id:msgId++ });
+  busy = true;
+  render();
+  el = $('mz-messages');
+  if (el) el.scrollTop = el.scrollHeight;
+
+  try {
+    const res = await fetch(PROXY + '/anthropic', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM,
+        tools: [{ type:'web_search_20250305', name:'web_search' }],
+        messages: msgs.map(m => ({ role:m.role, content:m.content }))
+      })
+    });
+    const data = await res.json();
+    const reply = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('')
+      || "Sorry, I had a wriggle! Please try again.";
+    msgs.push({ role:'assistant', content:reply, id:msgId++ });
+    step = 'prompt';
+  } catch {
+    msgs.push({ role:'assistant', content:"Oops, something went wiggly! Please try again.", id:msgId++ });
+  }
+  busy = false;
+  render();
+  setTimeout(scrollToBot, 50);
+}
+
+window.startForm  = () => { step='form';  render(); };
+window.cancelForm = () => { step='none';  render(); };
+
+window.submitForm = async function() {
+  const name  = ($('mz-hname') ||{}).value||'';
+  const email = ($('mz-hemail')||{}).value||'';
+  if (!name||!email) { alert('Please enter your name and email.'); return; }
+
+  const transcript = msgs.map(m =>
+    (m.role==='assistant'?'Mazey: ':'Customer: ') + m.content
+  ).join('\n\n');
+
+  try {
+    await fetch(PROXY + '/gorgias', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        channel:'email', via:'help-center',
+        subject:'Live chat handoff — ' + name,
+        customer:{ email, name },
+        messages:[{ channel:'email', via:'help-center', from_agent:false,
+          body_text:`Customer requested live support via Mazey chat.\n\n--- Transcript ---\n\n${transcript}`
+        }]
+      })
+    });
+  } catch(e) { console.warn('Gorgias:', e); }
+
+  step = 'done';
+  msgs.push({ role:'assistant',
+    content:`Thanks ${name}! 🎉 A Maze Products specialist will reach out to **${email}** shortly. You're in great hands! 🪱`,
+    id:msgId++
+  });
+  render();
+};
+
+// Boot greeting
+msgs.push({ role:'assistant',
+  content:"G'day! 👋 I'm Mazey, your Maze Products composting pal! Whether you're after the perfect composter or need some worm farming wisdom, I'm here to help!\n\nWhat can I dig up for you today?",
+  id:msgId++
+});
+render();
+</script>
+</body>
+</html>

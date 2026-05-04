@@ -1,0 +1,12 @@
+{
+  "name": "mazey-chat",
+  "version": "1.0.0",
+  "description": "Mazey – Maze Products AI Chat",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
