@@ -237,6 +237,11 @@
       </svg>
     </button>
   </div>
+  <div style="background:#fff;text-align:center;padding:6px 0 4px;border-top:1px solid #f0f0f0;flex-shrink:0;">
+    <button onclick="openGorgias()" style="background:none;border:none;color:#40916c;font-size:12px;font-family:'Montserrat',sans-serif;font-weight:600;cursor:pointer;text-decoration:underline;">
+      💬 Speak to a real person
+    </button>
+  </div>
 
   <div id="foot">
     🌱 <a href="https://mazeproducts.com.au" target="_blank">mazeproducts.com.au</a> · Powered by AI
@@ -348,7 +353,7 @@ async function send(text) {
     const reply = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('')
       || "Sorry, I had a wriggle! Please try again.";
     msgs.push({role:'assistant',content:reply,id:id++});
-    step = 'prompt';
+    step = 'none';
   } catch {
     msgs.push({role:'assistant',content:"Oops, something went wiggly! Please try again.",id:id++});
   }
