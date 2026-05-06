@@ -96,7 +96,7 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     }
     .mini-ava img { width: 100%; height: 100%; object-fit: cover; }
-    .mini-ava-user { background: var(--gd) !important; border-color: var(--gd) !important; font-size: 14px; color: #fff; filter: brightness(10); }
+    .mini-ava-user { background: var(--gd) !important; border-color: var(--gd) !important; }
 
     .bbl {
       max-width: 78%; padding: 12px 15px;
@@ -351,6 +351,16 @@ async function send(text) {
     const reply = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('')
       || "Sorry, I had a wriggle! Please try again.";
     msgs.push({role:'assistant',content:reply,id:id++});
+
+    // Auto-trigger Gorgias if user asked for a human
+    const userMsg = t.toLowerCase();
+    const wantsHuman = userMsg.includes('human') || userMsg.includes('person') ||
+      userMsg.includes('agent') || userMsg.includes('staff') || userMsg.includes('team') ||
+      userMsg.includes('speak to') || userMsg.includes('talk to') || userMsg.includes('connect me') ||
+      userMsg.includes('real person') || userMsg.includes('support');
+    if (wantsHuman) {
+      setTimeout(() => openGorgias(), 1500);
+    }
     step = 'none';
   } catch {
     msgs.push({role:'assistant',content:"Oops, something went wiggly! Please try again.",id:id++});
