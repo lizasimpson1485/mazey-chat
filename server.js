@@ -2,13 +2,12 @@ const http = require('http');
 const fs   = require('fs');
 const path = require('path');
 
-const PORT = process.env.PORT || 3000;
-
+const PORT          = process.env.PORT          || 3000;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || '';
 const GORGIAS_EMAIL = process.env.GORGIAS_EMAIL     || '';
 const GORGIAS_KEY   = process.env.GORGIAS_API_KEY   || '';
 
-const cors = {
+const CORS = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
@@ -25,43 +24,67 @@ const MIME = {
   '.css':  'text/css',
 };
 
-function serveStatic(res, filePath) {
-  try {
-    const file = fs.readFileSync(filePath);
-    const ext  = path.extname(filePath);
-    res.writeHead(200, { ...cors, 'Content-Type': MIME[ext] || 'application/octet-stream' });
-    res.end(file);
-  } catch {
-    res.writeHead(404, cors); res.end('Not found');
-  }
-}
-  return new Promise((res, rej) => {
-    let d = '';
-    req.on('data', c => d += c);
-    req.on('end', () => { try { res(JSON.parse(d)); } catch(e) { rej(e); } });
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', chunk => data += chunk);
+    req.on('end', () => {
+      try { resolve(JSON.parse(data)); }
+      catch(e) { reject(e); }
+    });
+    req.on('error', reject);
   });
 }
 
-http.createServer(async (req, res) => {
+function serveFile(res, filePath) {
+  try {
+    const file = fs.readFileSync(filePath);
+    const ext  = path.extname(filePath);
+    res.writeHead(200, { ...CORS, 'Content-Type': MIME[ext] || 'application/octet-stream' });
+    res.end(file);
+  } catch {
+    res.writeHead(404, CORS);
+    res.end('Not found');
+  }
+}
 
+function jsonResponse(res, status, data) {
+  res.writeHead(status, { ...CORS, 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(data));
+}
+
+const server = http.createServer(async (req, res) => {
+  console.log(req.method, req.url);
+
+  // Preflight
   if (req.method === 'OPTIONS') {
-    res.writeHead(204, cors); res.end(); return;
+    res.writeHead(204, CORS);
+    res.end();
+    return;
   }
 
-  // ── Serve static files ───────────────────────────────────
+  // Static files
   if (req.method === 'GET') {
-    const staticFiles = ['/index.html', '/', '/manifest.json', '/worm.png', '/logo.svg'];
-    if (staticFiles.includes(req.url) || req.url === '/') {
-      const fileName = req.url === '/' ? 'index.html' : req.url.slice(1);
-      return serveStatic(res, path.join(__dirname, fileName));
+    const urlMap = {
+      '/':             'index.html',
+      '/index.html':   'index.html',
+      '/manifest.json':'manifest.json',
+      '/worm.png':     'worm.png',
+      '/logo.svg':     'logo.svg',
+    };
+    if (urlMap[req.url]) {
+      return serveFile(res, path.join(__dirname, urlMap[req.url]));
     }
+    res.writeHead(404, CORS);
+    res.end('Not found');
+    return;
   }
 
-  // ── Anthropic proxy ───────────────────────────────────────
+  // Anthropic proxy
   if (req.method === 'POST' && req.url === '/anthropic') {
     try {
       const body = await readBody(req);
-      console.log('Anthropic request - key present:', !!ANTHROPIC_KEY, 'key prefix:', ANTHROPIC_KEY.slice(0,10));
+      console.log('Calling Anthropic, key present:', !!ANTHROPIC_KEY);
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -73,18 +96,15 @@ http.createServer(async (req, res) => {
         body: JSON.stringify(body),
       });
       const data = await r.json();
-      console.log('Anthropic response status:', r.status, 'error:', data.error);
-      res.writeHead(r.status, { ...cors, 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(data));
+      console.log('Anthropic status:', r.status);
+      return jsonResponse(res, r.status, data);
     } catch(e) {
-      console.error('Anthropic fetch error:', e.message);
-      res.writeHead(500, { ...cors, 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: e.message }));
+      console.error('Anthropic error:', e.message);
+      return jsonResponse(res, 500, { error: e.message });
     }
-    return;
   }
 
-  // ── Gorgias proxy ─────────────────────────────────────────
+  // Gorgias proxy
   if (req.method === 'POST' && req.url === '/gorgias') {
     try {
       const body = await readBody(req);
@@ -98,15 +118,16 @@ http.createServer(async (req, res) => {
         body: JSON.stringify(body),
       });
       const data = await r.json();
-      res.writeHead(r.status, { ...cors, 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(data));
+      console.log('Gorgias status:', r.status);
+      return jsonResponse(res, r.status, data);
     } catch(e) {
-      res.writeHead(500, { ...cors, 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: e.message }));
+      console.error('Gorgias error:', e.message);
+      return jsonResponse(res, 500, { error: e.message });
     }
-    return;
   }
 
-  res.writeHead(404, cors); res.end('Not found');
+  res.writeHead(405, CORS);
+  res.end('Method not allowed');
+});
 
-}).listen(PORT, () => console.log(`Mazey running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Mazey running on port ${PORT}`));
