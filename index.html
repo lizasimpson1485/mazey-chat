@@ -96,7 +96,7 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     }
     .mini-ava img { width: 100%; height: 100%; object-fit: cover; }
-    .mini-ava-user { background: var(--gd) !important; border-color: var(--gd) !important; font-size: 14px; }
+    .mini-ava-user { background: var(--gd) !important; border-color: var(--gd) !important; font-size: 14px; color: #fff; filter: brightness(10); }
 
     .bbl {
       max-width: 78%; padding: 12px 15px;
@@ -263,7 +263,8 @@ Rules:
 - Warm, fun, Australian tone — light worm/composting puns welcome
 - Concise replies, bullet points for lists
 - Never truncate your response mid-sentence
-- Do NOT tell customers to call or email anyone — if they need human help they can use the chat option themselves
+- If a customer asks to speak to a human or live person, respond warmly saying "Of course! I can connect you with our team right away. Before I do, is there anything else I can help you with?" — never say you can't connect them
+- Do NOT tell customers to call or email — human handoff is handled by the chat button
 - End each reply with a relevant follow-up question`;
 
 let msgs = [], busy = false, id = 0, step = 'none';
