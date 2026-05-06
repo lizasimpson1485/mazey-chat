@@ -227,6 +227,7 @@
     <button class="qbtn" onclick="send('How do I start composting?')">How do I start composting?</button>
     <button class="qbtn" onclick="send('What products do you sell?')">What products do you sell?</button>
     <button class="qbtn" onclick="send('Help with my order')">Help with my order</button>
+    <button class="qbtn" style="border-color:#2d6a4f;color:#2d6a4f" onclick="openGorgias()">💬 Speak to a person</button>
   </div>
 
   <div id="inputbar">
@@ -235,11 +236,6 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
       </svg>
-    </button>
-  </div>
-  <div style="background:#fff;text-align:center;padding:6px 0 4px;border-top:1px solid #f0f0f0;flex-shrink:0;">
-    <button onclick="openGorgias()" style="background:none;border:none;color:#40916c;font-size:12px;font-family:'Montserrat',sans-serif;font-weight:600;cursor:pointer;text-decoration:underline;">
-      💬 Speak to a real person
     </button>
   </div>
 
@@ -259,7 +255,6 @@ Your role:
 - Give composting and gardening advice tailored to Australian conditions
 - Troubleshoot composting and worm farm problems
 - Help with product setup, usage and maintenance
-- For order/shipping queries offer to connect to a human
 
 Rules:
 - NEVER suggest competitor products or other brands
@@ -267,7 +262,9 @@ Rules:
 - Always include a direct link to mazeproducts.com.au when recommending a product
 - Warm, fun, Australian tone — light worm/composting puns welcome
 - Concise replies, bullet points for lists
-- End each reply with a follow-up question or offer to connect to a human`;
+- Never truncate your response mid-sentence
+- Do NOT tell customers to call or email anyone — if they need human help they can use the chat option themselves
+- End each reply with a relevant follow-up question`;
 
 let msgs = [], busy = false, id = 0, step = 'none';
 
