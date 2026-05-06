@@ -11,8 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 
-  <!-- Gorgias Chat Widget -->
-  <script id="gorgias-chat-widget-install-v3" src="https://config.gorgias.chat/bundle-loader/01KQTRRCJA3SYEN1CQY4VWCSV7"></script>
+  <!-- Gorgias loads only when requested -->
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -191,12 +190,6 @@
     }
     #foot a { color: var(--gl); text-decoration: none; font-weight: 600; }
 
-    /* Hide Gorgias bubble until triggered */
-    #gorgias-chat-container,
-    #gorgias-web-messenger-container { display: none !important; }
-    #gorgias-chat-container.mz-open,
-    #gorgias-web-messenger-container.mz-open { display: block !important; }
-
     @keyframes mzB {
       0%,60%,100% { transform: translateY(0); }
       30% { transform: translateY(-5px); }
@@ -364,22 +357,42 @@ async function send(text) {
 }
 
 window.openGorgias = function() {
-  const transcript = msgs.map(m=>(m.role==='assistant'?'Mazey: ':'You: ')+m.content).join('\n\n');
-  const gc = document.getElementById('gorgias-chat-container') ||
-             document.getElementById('gorgias-web-messenger-container');
-  if (gc) { gc.classList.add('mz-open'); }
-  if (window.GorgiasChat) {
-    window.GorgiasChat.open();
-    setTimeout(()=>{
-      if (window.GorgiasChat.setMessageText)
-        window.GorgiasChat.setMessageText(`Hi! I was chatting with Mazey and need some help.\n\n--- Chat so far ---\n\n${transcript}`);
-    }, 800);
-  }
+  const transcript = msgs.map(m => (m.role==='assistant' ? 'Mazey: ' : 'You: ') + m.content).join('\n\n');
+
   step = 'done';
   msgs.push({role:'assistant',
-    content:"I've opened our live chat! 💬 A Maze Products team member will be with you shortly. 🪱",
+    content:"Connecting you to our team now! 💬 A Maze Products specialist will be with you shortly. 🪱",
     id:id++});
   render();
+
+  // Load Gorgias widget on demand if not already loaded
+  if (!window.GorgiasChat) {
+    const s = document.createElement('script');
+    s.id  = 'gorgias-chat-widget-install-v3';
+    s.src = 'https://config.gorgias.chat/bundle-loader/01KQTRRCJA3SYEN1CQY4VWCSV7';
+    s.onload = () => {
+      setTimeout(() => {
+        if (window.GorgiasChat) {
+          window.GorgiasChat.open();
+          if (window.GorgiasChat.setMessageText) {
+            window.GorgiasChat.setMessageText(
+              `Hi! I was chatting with Mazey and need some help.\n\n--- Chat so far ---\n\n${transcript}`
+            );
+          }
+        }
+      }, 1500);
+    };
+    document.head.appendChild(s);
+  } else {
+    window.GorgiasChat.open();
+    setTimeout(() => {
+      if (window.GorgiasChat.setMessageText) {
+        window.GorgiasChat.setMessageText(
+          `Hi! I was chatting with Mazey and need some help.\n\n--- Chat so far ---\n\n${transcript}`
+        );
+      }
+    }, 800);
+  }
 };
 
 // Boot
