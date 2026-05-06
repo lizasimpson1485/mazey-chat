@@ -101,11 +101,11 @@
 
     .bbl {
       max-width: 78%; padding: 12px 15px;
-      font-size: 14px; line-height: 1.7;
+      font-size: 16px !important; line-height: 1.7;
       font-family: 'Montserrat', sans-serif;
     }
-    .bbl p   { margin: 0; font-size: 14px; }
-    .bbl li  { font-size: 14px; margin-bottom: 4px; }
+    .bbl p   { margin: 0; font-size: 16px !important; }
+    .bbl li  { font-size: 16px !important; margin-bottom: 4px; }
     .bbl a   { color: var(--gd); font-weight: 600; text-decoration: underline; }
     .bbl strong { font-weight: 700; }
 
@@ -278,9 +278,9 @@ function fmt(text) {
   return text.split('\n').map(line => {
     line = line.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
     line = line.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
-    if (line.startsWith('- ')) return `<li style="margin-left:16px;list-style:disc;margin-bottom:4px">${line.slice(2)}</li>`;
+    if (line.startsWith('- ')) return `<li style="margin-left:16px;list-style:disc;margin-bottom:4px;font-size:16px;font-family:Montserrat,sans-serif">${line.slice(2)}</li>`;
     if (!line.trim()) return '<div style="height:5px"></div>';
-    return `<p>${line}</p>`;
+    return `<p style="margin:0;font-size:16px;font-family:Montserrat,sans-serif">${line}</p>`;
   }).join('');
 }
 
